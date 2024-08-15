@@ -1,5 +1,5 @@
 import dbConnect from '@/lib/dbConnect';
-import UserBlog from '@/models/UserModel';
+import UserService from "@/service/UserController";
 import { NextResponse, NextRequest } from 'next/server';
 import bcrypt from 'bcrypt';
 import TokenService from '@/service/TokenService';
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const candidate: UsersDto | null = await UserBlog.findOne({ login: login });
+      const candidate: UsersDto | null = await UserService.findOneUser(login);
 
     if (action === 'signIn') {
       if (candidate) {
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       }
 
       const hashPassword = await bcrypt.hash(password, 3);
-      const newUser = await UserBlog.create({ login, password: hashPassword });
+      const newUser = await UserService.createUser( login, hashPassword );
       const token = TokenService.generateToken({ ...newUser });
 
       await TokenService.saveToken(newUser._id, token);

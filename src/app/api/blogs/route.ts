@@ -1,5 +1,6 @@
 import dbConnect from '@/lib/dbConnect';
-import Blog from '@/models/Blogs';
+// import Blog from '@/models/Blogs';
+import BlogService from "@/service/BlogController";
 import { NextResponse, NextRequest } from 'next/server';
 import TokenService from '@/service/TokenService';
 import blogValidation from '@/validation/blogValidSchema';
@@ -8,7 +9,7 @@ export async function GET() {
   await dbConnect();
 
   try {
-    const blogs = await Blog.find({});
+    const blogs = await BlogService.findAllBlogs();
     return NextResponse.json(blogs);
   } catch (err: any) {
     return NextResponse.json({ error: err.message });
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(error.details[0].message);
     }
 
-    const newBlog = await Blog.create({ title, date, content });
+    const newBlog = await BlogService.createBlog(title, date, content);
     return NextResponse.json(newBlog);
   } catch (err: any) {
     return NextResponse.json({ error: err.message });
@@ -75,13 +76,7 @@ export async function PUT(req: NextRequest) {
     if (error) {
       return NextResponse.json(error.details[0].message);
     }
-    const editedBlog = await Blog.findOneAndUpdate(
-      { _id },
-      { title, date, content },
-      {
-        returnOriginal: false,
-      },
-    );
+    const editedBlog = await BlogService.findBlogAndUpdate(_id, title, date, content);
     return NextResponse.json(editedBlog);
   } catch (err: any) {
     return NextResponse.json({ error: err.message });
@@ -110,7 +105,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { _id } = Object.fromEntries(req.nextUrl.searchParams);
-    const remBlog = await Blog.deleteOne({ _id });
+    const remBlog = await BlogService.removeBlog(_id);
     return NextResponse.json(remBlog);
   } catch (err: any) {
     return NextResponse.json({ error: err.message });
